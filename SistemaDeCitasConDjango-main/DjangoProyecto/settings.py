@@ -185,9 +185,3 @@ EMAIL_PORT = 587  # Puerto para conexiones TLS (usualmente 587 o 465)
 EMAIL_USE_TLS = True  # Usa True para TLS, False si usas SSL
 EMAIL_HOST_USER = ''  # Tu dirección de correo
 EMAIL_HOST_PASSWORD = ''  # Tu contraseña
-
-
-
-TWILIO_ACCOUNT_SID = ''
-TWILIO_AUTH_TOKEN = ''
-TWILIO_PHONE_NUMBER = '+'  # Número del sandbox
