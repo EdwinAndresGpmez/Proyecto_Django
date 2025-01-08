@@ -1,0 +1,239 @@
+{% load static %}
+
+<!-- Plantilla de la cabecera de la página -->
+{% include "cabecera-usuario.html" %}
+
+
+<!-- Contenedor principal -->
+<div class="container my-5">
+    <!-- Título principal -->
+    <div class="text-center mb-4">
+        <h1 class="display-4 text-primary fw-bold">Crear Cita</h1>
+        <p class="text-muted">Selecciona los datos para programar tu cita</p>
+    </div>
+
+    <!-- Card para el formulario -->
+    <div class="card shadow-lg border-0">
+        <div class="card-body p-5">
+            <form action="{% url 'cita' %}" method="POST" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="id_usu" value="{{ request.user.id }}">
+                <input type="hidden" name="cita_estado" value="True">
+                <input type="hidden" name="id_pac" value="{{ request.user.paciente_id }}">
+
+                <!-- Progreso -->
+             
+                <div class="progress mb-4" style="height: 20px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar"
+                        style="width: 0%;" id="progress-bar">
+                        Llenando los datos...
+                    </div>
+                </div>
+                
+                <!-- Mostrar mensaje adicional mientras se completa el formulario -->
+                <div class="text-center mt-4" id="animated-message">
+                    <p class="text-muted" id="message">¡Estás avanzando! Completa todos los campos y te ayudaremos a crear tu cita.</p>
+                </div>
+                
+                <script>
+                    // Simulación de progreso mientras se llena el formulario
+                    document.querySelector('form').addEventListener('input', function() {
+                        const fields = document.querySelectorAll('input, select, textarea');
+                        const filledFields = Array.from(fields).filter(field => field.value !== '').length;
+                        const progress = (filledFields / fields.length) * 100;
+                
+                        // Actualizar la barra de progreso
+                        document.getElementById('progress-bar').style.width = progress + '%';
+                
+                        // Cambiar mensaje según avance
+                        const message = document.getElementById('message');
+                        if (progress < 30) {
+                            message.innerHTML = "¡Vamos! Estás empezando...";
+                        } else if (progress < 70) {
+                            message.innerHTML = "¡Buen trabajo! Sigue completando los campos.";
+                        } else if (progress < 100) {
+                            message.innerHTML = "¡Casi listo! Solo un paso más.";
+                        } else {
+                            message.innerHTML = "¡Listo! Solo falta enviar tu cita.";
+                        }
+                    });
+                </script>
+                    
+                <!-- Mostrar mensajes generales -->
+                {% if messages %}
+                <div class="container mt-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-center py-4" role="alert"
+                        style="font-size: 1.5rem;">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Fila: Servicio y Profesional -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="servicio" class="form-label fw-bold">Servicio</label>
+                        <select class="form-select {% if form.id_servicio.errors %}is-invalid{% endif %}" 
+                                id="servicio" name="id_servicio" required>
+                            <option value="" selected>Selecciona un servicio</option>
+                            {% for servicio in listaServicios %}
+                            <option value="{{ servicio.id_servicio }}">{{ servicio.nombre_servicio }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">
+                            {% for error in form.id_servicio.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="profesional" class="form-label fw-bold">Profesional</label>
+                        <select class="form-select {% if form.id_prof.errors %}is-invalid{% endif %}" 
+                                id="profesional" name="id_prof" required>
+                            <option value="">Selecciona un servicio primero</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            {% for error in form.id_prof.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila: Fecha y Hora -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="dia" class="form-label fw-bold">Fecha</label>
+                        <input type="date" class="form-control {% if form.dia_cit.errors %}is-invalid{% endif %}" 
+                               id="dia" name="dia_cit" required>
+                        <div class="invalid-feedback">
+                            {% for error in form.dia_cit.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="hora" class="form-label fw-bold">Hora</label>
+                        <select class="form-select {% if form.id_hora.errors %}is-invalid{% endif %}" 
+                                id="hora" name="id_hora" required>
+                            <option value="">Selecciona una fecha primero</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            {% for error in form.id_hora.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lugar de la cita -->
+                <div class="mb-4">
+                    <label for="lugares" class="form-label fw-bold">Lugar de la cita</label>
+                    <select class="form-select {% if form.id_lugar.errors %}is-invalid{% endif %}" 
+                            id="lugares" name="id_lugar" required>
+                        <option value="" selected>Selecciona un lugar</option>
+                        {% for lugares in listaLugares %}
+                        <option value="{{ lugares.id_lugar }}">{{ lugares.nombre_lugar }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">
+                        {% for error in form.id_lugar.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Nota -->
+                <div class="mb-4">
+                    <label for="nota_cit" class="form-label fw-bold">Nota/Descripción</label>
+                    <textarea class="form-control {% if form.nota_cit.errors %}is-invalid{% endif %}" 
+                              id="nota_cit" name="nota_cit" rows="3"
+                              placeholder="Escribe una nota para la cita..." style="resize: none;"></textarea>
+                    <div class="invalid-feedback">
+                        {% for error in form.nota_cit.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Botón de envío -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-calendar-check me-2"></i>Crear Cita
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mensajes de error -->
+    {% if messages %}
+    <div class="mt-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2" {% if 'success' in message.tags %}style="color: green;"{% else %}style="color: red;"{% endif %}></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Scripts dinámicos -->
+<script>
+    document.getElementById('servicio').addEventListener('change', function () {
+        const servicioId = this.value;
+        const profesionalSelect = document.getElementById('profesional');
+        const lugaresSelect = document.getElementById('lugares');
+
+        if (servicioId) {
+            // Cargar profesionales
+            fetch(`{% url 'get_profesionales' %}?id_servicio=${servicioId}`)
+                .then(response => response.json())
+                .then(data => {
+                    profesionalSelect.innerHTML = '<option value="">Selecciona un profesional</option>';
+                    data.forEach(item => {
+                        profesionalSelect.innerHTML += `<option value="${item.id_prof}">${item.nombre_prof}</option>`;
+                    });
+                });
+
+            // Cargar lugares
+            fetch(`{% url 'get_lugares' %}?id_servicio=${servicioId}`)
+                .then(response => response.json())
+                .then(data => {
+                    lugaresSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+                    data.forEach(item => {
+                        lugaresSelect.innerHTML += `<option value="${item.id_lugar}">${item.nombre_lugar}</option>`;
+                    });
+                });
+        } else {
+            profesionalSelect.innerHTML = '<option value="">Selecciona un servicio primero</option>';
+            lugaresSelect.innerHTML = '<option value="">Selecciona un servicio primero</option>';
+        }
+    });
+
+    document.getElementById('dia').addEventListener('change', function () {
+        const diaCit = this.value;
+        const profesionalId = document.getElementById('profesional').value;
+        const horasSelect = document.getElementById('hora');
+
+        if (profesionalId && diaCit) {
+            fetch(`/get_horas/?id_prof=${profesionalId}&dia_cit=${diaCit}`)
+                .then(response => response.json())
+                .then(data => {
+                    horasSelect.innerHTML = '<option value="">Selecciona una hora</option>';
+                    data.forEach(item => {
+                        horasSelect.innerHTML += `<option value="${item.id_hora}">${item.rango_horas}</option>`;
+                    });
+                });
+        } else {
+            horasSelect.innerHTML = '<option value="">Selecciona un profesional y una fecha primero</option>';
+        }
+    });
+</script>
+{% include "pie.html" %}

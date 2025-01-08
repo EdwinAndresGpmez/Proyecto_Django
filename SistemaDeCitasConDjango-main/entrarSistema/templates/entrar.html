@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    {% load static %}  <!-- Asegúrate de cargar la librería de static aquí -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Citas</title>
+
+    <!-- Ubicación del archivo BOOTSTRAP -->
+    <link type='text/css' href='{% static "css/bootstrap/bootstrap.min.css" %}' rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <main class="container d-flex align-items-center min-vh-100">
+        <section class="row justify-content-center w-100">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-lg rounded-3">
+                    <div class="card-body">
+                        <h3 class="card-title text-center text-primary">Iniciar Sesión</h3>
+                        <form action="{% url 'iniciarSesion' %}" method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <!-- Campo Usuario -->
+                            <div class="mb-3">
+                                <label for="usuario" class="form-label">Usuario</label>
+                                {{ form.cedula }}
+                                <div class="invalid-tooltip">
+                                    Es necesario poner el nombre del usuario
+                                </div>
+                            </div>
+                            <!-- Campo Contraseña -->
+                            <div class="mb-3">
+                                <label for="contrasenna" class="form-label">Contraseña</label>
+                                {{ form.password }}
+                                <div class="invalid-tooltip">
+                                    Es necesario poner la contraseña del usuario
+                                </div>
+                            </div>
+                            <!-- Errores de Contraseña -->
+                            {% if form.password.errors %}
+                            <ul class="list-unstyled text-danger">
+                                {% for error in form.password.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+
+                            <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                        </form>
+
+                        <div class="text-center py-3">
+                            <small>¿No tienes una cuenta? <a href="{% url 'registrarse' %}">Crear cuenta</a></small>
+                        </div>
+                        <div class="text-center py-3">
+                            <small>Accede por más información <br><a href="{% url 'informacion_invitado' %}">Clickeando acá</a></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Ubicación de archivos JavaScript de Bootstrap -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+</body>
+{% include "pie.html" %}
+
+</html>
+
+        
+

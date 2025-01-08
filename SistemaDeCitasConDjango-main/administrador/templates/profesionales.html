@@ -1,0 +1,315 @@
+{% include "cabecera-administrador.html" %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Admin Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    {% load static %}
+
+</head>
+
+<body>
+    <div class="container my-5">
+        <div class="tab-content">
+            <!-- Crear Profesional -->
+            <div class="tab-pane fade show active">
+                <h1 class="text-center border border-dark p-3 paginas-titulo">PROFESIONALES</h1>
+                {% if messages %}
+                <div class="alert alert-info">
+                    {% for message in messages %}
+                    <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Formulario para crear profesional -->
+                <form method="post" action="{% url 'lista_profesionales' %}">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        {% load widget_tweaks %}
+                        {% for field in formProfesional %}
+                        <div class="form-group col-md-6 col-sm-12">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field|add_class:"form-control" }}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="alert alert-danger">
+                                {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" name="submitProfesional" class="btn btn-primary btn-lg btn-block mt-3">
+                        Guardar Profesional
+                    </button>
+                </form>
+                <!-- Lista de profesionales -->
+                <h4 class="mt-4">Lista de Profesionales</h4>
+                <table class="table table-bordered table-responsive">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Documento</th>
+                            <th>Nombre</th>
+                            <th>Especialidad</th>
+                            <th>Lugares</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profesional in profesionales %}
+                        <tr>
+                            <td>{{ profesional.id_prof }}</td>
+                            <td>{{ profesional.num_doc_prof }}</td>
+                            <td>{{ profesional.nombre_prof }}</td>
+                            <td>{{ profesional.especialidad_prof }}</td>
+                            <td>
+                                {% if profesional.lugares.exists %}
+                                {% for lugar in profesional.lugares.all %}
+                                {{ lugar.nombre_lugar }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                {% else %}
+                                Sin lugar asociado
+                                {% endif %}
+                            </td>
+                            <td>{{ profesional.estado_prof|yesno:"Activo,Inactivo" }}</td>
+                            <td>
+                                <a href="#" class="btn btn-warning btn-sm editar-profesional"
+                                    data-id="{{ profesional.id_prof }}" data-documento="{{ profesional.num_doc_prof }}"
+                                    data-nombre="{{ profesional.nombre_prof }}"
+                                    data-especialidad="{{ profesional.especialidad_prof }}"
+                                    data-email="{{ profesional.email_prof }}"
+                                    data-telefono="{{ profesional.telefono_prof }}"
+                                    data-estado="{{ profesional.estado_prof }}"
+                                    data-lugares="{% for lugar in profesional.lugares.all %}{{ lugar.id_lugar }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                                    Editar
+                                </a>
+
+
+                                <button class="btn btn-danger btn-sm eliminar-profesional"
+                                    data-id="{{ profesional.id_prof }}" data-nombre="{{ profesional.nombre_prof }}">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay profesionales registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Eliminación -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEliminarLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="mensajeEliminar">¿Estás seguro de que deseas eliminar al profesional <span
+                            id="profNombre"></span>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edición -->
+    <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditarLabel">Editar Profesional</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formEditarProfesional">
+                    <div class="modal-body">
+                        <input type="hidden" id="editarIdProf">
+                        <div class="form-group">
+                            <label for="editarNombreProf">Nombre</label>
+                            <input type="text" class="form-control" id="editarNombreProf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarEspecialidadProf">Especialidad</label>
+                            <input type="text" class="form-control" id="editarEspecialidadProf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarEmailProf">Email</label>
+                            <input type="email" class="form-control" id="editarEmailProf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarTelefonoProf">Teléfono</label>
+                            <input type="text" class="form-control" id="editarTelefonoProf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarLugares">Lugares</label>
+                            <select id="editarLugares" name="lugares[]" class="form-control" multiple>
+                                {% for lugar in lugares %}
+                                <option value="{{ lugar.id_lugar }}">{{ lugar.nombre_lugar }}</option>
+                                {% endfor %}
+                            </select>
+                            
+
+                        </div>
+                        <div class="form-group">
+                            <label for="editarEstadoProf">Estado</label>
+                            <select id="editarEstadoProf" class="form-control" required>
+                                <option value="True">Activo</option>
+                                <option value="False">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            // Mostrar modal de eliminar
+            $('.eliminar-profesional').click(function (e) {
+        e.preventDefault();
+        const idProf = $(this).data('id');
+        const nombreProf = $(this).data('nombre');
+
+        $('#profNombre').text(nombreProf);
+        $('#modalEliminar').modal('show');
+
+        $('#confirmarEliminar').off('click').on('click', function () {
+            $.ajax({
+                url: `/eliminar_profesional/${idProf}/`, // Ruta ajustada
+                method: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id_prof': idProf
+                },
+                success: function (response) {
+                    if (response.status === "success") {
+                        alert(response.message); // Mensaje de éxito
+                        location.reload(); // Recargar la página
+                    } else if (response.status === "error") {
+                        alert(response.message); // Mostrar mensaje de error
+                    }
+                },
+                error: function () {
+                    alert('Hubo un error en la solicitud');
+                }
+            });
+        });
+    });
+            // Mostrar modal de editar
+            $('.editar-profesional').click(function (e) {
+                e.preventDefault();
+
+                const idProf = $(this).data('id');
+                const nombreProf = $(this).data('nombre');
+                const especialidadProf = $(this).data('especialidad');
+                const emailProf = $(this).data('email');
+                const telefonoProf = $(this).data('telefono');
+                const estadoProf = $(this).data('estado');
+
+                // Manejo de lugares
+let lugares = $(this).data('lugares');
+if (typeof lugares === 'string') {
+    lugares = lugares.split(',').map(id => id.trim());
+} else if (!Array.isArray(lugares)) {
+    lugares = [];
+}
+
+// Preseleccionar lugares
+$('#editarLugares').val(lugares).trigger('change');
+
+
+                // Asignar valores al resto de los campos del modal
+                $('#editarIdProf').val(idProf);
+                $('#editarNombreProf').val(nombreProf);
+                $('#editarEspecialidadProf').val(especialidadProf);
+                $('#editarEmailProf').val(emailProf);
+                $('#editarTelefonoProf').val(telefonoProf);
+                $('#editarEstadoProf').val(estadoProf);
+
+                // Mostrar el modal de edición
+                $('#modalEditar').modal('show');
+            });
+
+
+
+            // Enviar el formulario de edición
+            // Enviar el formulario de edición
+            $('#formEditarProfesional').submit(function (e) {
+                e.preventDefault();
+                const idProf = $('#editarIdProf').val();
+                const nombreProf = $('#editarNombreProf').val();
+                const especialidadProf = $('#editarEspecialidadProf').val();
+                const emailProf = $('#editarEmailProf').val();
+                const telefonoProf = $('#editarTelefonoProf').val();
+                const estadoProf = $('#editarEstadoProf').val();
+                const lugares = $('#editarLugares').val();
+
+                $.ajax({
+                    url: `/editar_profesional/${idProf}/`, // Ruta ajustada
+                    method: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id_prof': idProf,
+                        'nombre_prof': nombreProf,
+                        'especialidad_prof': especialidadProf,
+                        'email_prof': emailProf,
+                        'telefono_prof': telefonoProf,
+                        'estado_prof': estadoProf,
+                        'lugares': lugares
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message); // Mensaje de éxito
+                            location.reload(); // Recargar la página
+                        } else {
+                            alert(response.message); // Mostrar el mensaje de error del backend
+                        }
+                    },
+                    error: function (xhr) {
+                        // Manejar errores inesperados
+                        const errorMessage = xhr.responseJSON?.message || 'Hubo un error en la solicitud. Verifica los datos.';
+                        alert(errorMessage);
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+
+</html>
+{% include "pie.html" %}

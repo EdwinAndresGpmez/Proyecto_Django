@@ -1,0 +1,314 @@
+{% include "cabecera-administrador.html" %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    {% load static %}
+</head>
+<body>
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+    {% load custom_filters %}
+    <div class="container mt-4">
+        <div class="tab-content">
+            <!-- Crear Paciente -->
+            <div class="tab-pane fade show active">
+                <h1 class="text-center border border-dark p-3 paginas-titulo">
+                    PACIENTES 
+                </h1>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="tipo_doc">tipo de documento</label>
+                            {{ form.tipo_doc|add_class:"form-control" }}
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="num_doc">Numero de documento</label>
+                            {{ form.num_doc|add_class:"form-control" }}
+                        </div>
+                        
+                        <!-- Nombre Paciente -->
+                        <div class="form-group col-md-6">
+                            <label for="nombre_pac">Nombre Completo</label>
+                            {{ form.nombre_pac|add_class:"form-control" }}
+                        </div>
+                        <!-- Fecha de Nacimiento -->
+                        <div class="form-group col-md-6">
+                            <label for="nacimiento_pac">Fecha de Nacimiento</label>
+                            {{ form.nacimiento_pac|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <!-- Género -->
+                        <div class="form-group col-md-6">
+                            <label for="genero_pac">Género</label>
+                            {{ form.genero_pac|add_class:"form-control" }}
+                        </div>
+                        <!-- Estado del Paciente -->
+
+                        <div class="form-group col-md-6">
+                            <label for="direccion">Dirección</label>
+                            {{ form.direccion|add_class:"form-control" }}
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="tipo_usuario">Tipo de Usuarios</label>
+                            {{ form.tipo_usuario|add_class:"form-control" }}
+                        </div>
+                        <div class="form-check">
+                            {{ form.pacientes_estado }}
+                            <label class="form-check-label" for="id_pacientes_estado">Estado del Paciente</label>
+                        </div>
+                        
+                    </div>
+                    <button type="submit" name="submitPaciente" class="btn btn-primary btn-lg btn-block">Guardar Paciente</button>
+                    
+                </form>
+                
+                <h4>Lista de Pacientes</h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>N° Documento</th>
+                            <th>Nombre</th>
+                            <th>Fecha de Nacimiento</th>
+                            <th>Género</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paciente in page_obj  %}
+                            <tr>
+                                <td>{{ paciente.id_pac }}</td>
+                                <td>{{ paciente.num_doc }}</td>
+                                <td>{{ paciente.nombre_pac }}</td>
+                                <td>{{ paciente.nacimiento_pac|date:"Y-m-d"}}</td>
+                                <td>{{ paciente.get_genero_pac_display }}</td>
+                                <td>{{ paciente.pacientes_estado|yesno:"Activo,Inactivo" }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-warning btn-sm editar-paciente"
+                                        data-id="{{ paciente.id_pac }}"
+                                        data-documento="{{ paciente.num_doc }}"
+                                        data-nombre="{{ paciente.nombre_pac }}"
+                                        data-nacimiento="{{ paciente.nacimiento_pac|date:"Y-m-d" }}"
+                                        data-genero="{{ paciente.genero_pac }}"
+                                        data-estado="{{ paciente.pacientes_estado }}">Editar</a>
+                                <!--    <button class="btn btn-danger btn-sm eliminar-paciente" 
+                                            data-id="{{ paciente.id_pac }}" 
+                                            data-nombre="{{ paciente.nombre_pac }}">Eliminar</button>-->
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No hay pacientes registrados.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <span class="step-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1">&laquo; primera</a>
+                            <a href="?page={{ page_obj.previous_page_number }}">anterior</a>
+                        {% endif %}
+                
+                        <span class="current">
+                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                        </span>
+                
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}">siguiente</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}">última &raquo;</a>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEliminarLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="mensajeEliminar">¿Estás seguro de que deseas eliminar al paciente <span id="pacienteNombre"></span>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <!-- Modal de Edición -->
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarLabel">Editar Paciente</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formEditarPaciente">
+                <div class="modal-body">
+                    <input type="hidden" id="editarIdPac">
+                    <div class="form-group">
+                        <label for="editarNombrePac">Nombre Completo</label>
+                        <input type="text" class="form-control" id="editarNombrePac" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarNacimientoPac">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" id="editarNacimientoPac" required>
+                    </div>                                                 
+                    <div class="form-group">
+                        <label for="editarGeneroPac">Género</label>
+                        <select class="form-control" id="editarGeneroPac" required>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                            <option value="O">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarEstadoPac">Estado</label>
+                        <select class="form-control" id="editarEstadoPac" required>
+                            <option value="True">Activo</option>
+                            <option value="False">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery y Bootstrap Bundle -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Mostrar modal de eliminar
+            $('.eliminar-paciente').click(function(e) {
+                e.preventDefault();
+                const idPac = $(this).data('id');
+                const nombrePac = $(this).data('nombre');
+                $('#pacienteNombre').text(nombrePac);
+                $('#modalEliminar').modal('show');
+
+                $('#confirmarEliminar').off('click').on('click', function() {
+                    $.ajax({
+                        url: "{% url 'eliminar_paciente' 0 %}".replace('0', idPac),
+                        method: 'POST',
+                        data: {
+                            'csrfmiddlewaretoken': '{{ csrf_token }}',
+                            'id_pac': idPac
+                        },
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('button[data-id="' + idPac + '"]').closest('tr').remove();
+                                $('#modalEliminar').modal('hide');
+                                alert(response.message);
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Ocurrió un error al intentar eliminar el paciente.');
+                        }
+                    });
+                });
+            });
+
+            // Mostrar modal de edición
+            $('.editar-paciente').click(function(e) {
+                e.preventDefault();
+                const idPac = $(this).data('id');
+                const nombrePac = $(this).data('nombre');
+                const nacimientoPac = $(this).data('nacimiento');
+                const generoPac = $(this).data('genero');
+                const estadoPac = $(this).data('estado');
+                
+                $('#editarIdPac').val(idPac);
+                $('#editarNombrePac').val(nombrePac);
+                const formattedNacimiento = nacimientoPac.split('T')[0];
+                $('#editarNacimientoPac').val(formattedNacimiento);
+                $('#editarGeneroPac').val(generoPac);
+                $('#editarEstadoPac').val(estadoPac);
+
+                $('#modalEditar').modal('show');
+            });
+
+            $('#formEditarPaciente').submit(function(e) {
+                e.preventDefault();
+            
+                const data = {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id_pac': $('#editarIdPac').val(),
+                    'nombre_pac': $('#editarNombrePac').val(),
+                    'nacimiento_pac': $('#editarNacimientoPac').val(),
+                    'genero_pac': $('#editarGeneroPac').val(),
+                    'pacientes_estado': $('#editarEstadoPac').val()
+                };
+            
+                $.ajax({
+                    url: "{% url 'editar_paciente' 0 %}".replace('0', data.id_pac),
+                    method: 'POST',
+                    data: data,
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            const row = $('a[data-id="' + data.id_pac + '"]').closest('tr');
+                            row.find('td:eq(2)').text(data.nombre_pac);
+                            row.find('td:eq(3)').text(data.nacimiento_pac);
+                            row.find('td:eq(4)').text($('#editarGeneroPac option:selected').text());
+                            row.find('td:eq(5)').text(data.pacientes_estado === "True" ? "Activo" : "Inactivo");
+            
+                            $('#modalEditar').modal('hide');
+                            alert('Paciente editado correctamente.');
+                        } else {
+                            alert(response.message);  
+                        }
+                    },
+                    error: function() {
+                        alert('Ocurrió un error al intentar editar el paciente.');
+                    }
+                });
+            });
+            
+        });
+    </script>
+</body>
+</html>
+
+{% include "pie.html" %}

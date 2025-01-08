@@ -1,0 +1,330 @@
+{% include "cabecera-administrador.html" %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    {% load static %}
+</head>
+
+<body>
+    {% load custom_filters %}
+    <div class="container mt-4">
+        <div class="tab-content">
+            <!-- Crear Profesional -->
+            <div class="tab-pane fade show active">
+                <h1 class="text-center border border-dark p-3 paginas-titulo">
+                    SERVICIOS
+                </h1>
+                <div class="container">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        {% for field in formServicios %}
+                        <div class="form-group col-md-6 mb-3">
+                            <div class="form-group">
+                                {{ field.label_tag }}
+                                {{ field|add_class:"form-control" }}
+                                {% if field.errors %}
+                                <div class="text-danger">
+                                    {% for error in field.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+                    <button type="submit" name="submitServicios" class="btn btn-primary btn-lg btn-block">Guardar
+                        Servicios</button>
+                </form>
+                <h4>Lista de Servicios</h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre del servicio</th>
+                            <th>Descripcion del servicio</th>
+                            <th>Estado del servicio</th>
+                            <th>Profesional</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for servicio in servicios %}
+                        <tr>
+                            <td>{{ servicio.id_servicio }}</td>
+                            <td>{{ servicio.nombre_servicio }}</td>
+                            <td>{{ servicio.descripcion_servicio }}</td>
+                            <td>{{ servicio.servicio_estado|yesno:"Activo,Inactivo" }}</td>
+                            <td>
+                                {% if servicio.profesionales.exists %}
+                                {% for profesional in servicio.profesionales.all %}
+                                {{ profesional.nombre_prof }}<br>
+                                {% endfor %}
+                                {% else %}
+                                No hay profesionales asignados
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="#" class="btn btn-warning btn-sm editar-servicios"
+                                    data-id="{{ servicio.id_servicio }}" data-servicio="{{ servicio.nombre_servicio }}"
+                                    data-descripcion="{{ servicio.descripcion_servicio }}"
+                                    data-estado="{{ servicio.servicio_estado }}"
+                                    data-profesionales="{% for profesional in servicio.profesionales.all %}{{ profesional.id_prof }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                                    Editar
+                                </a>
+
+
+                                <button class="btn btn-danger btn-sm eliminar-servicios"
+                                    data-id="{{ servicio.id_servicio }}" data-servicio="{{ servicio.nombre_servicio }}">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay servicios registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEliminarLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="mensajeEliminar">¿Estás seguro de que deseas eliminar al profesional <span
+                            id="servNombre"></span>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de Edición -->
+    <!-- Modal de Edición -->
+    <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditarLabel">Editar Servicios</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formEditarServicios">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" id="editarIdServ">
+                        <div class="form-group">
+                            <label for="editarNombreServ">Nombre Servicio</label>
+                            <input type="text" class="form-control" id="editarNombreServ" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarDescripcionServ">Descripción del Servicio</label>
+                            <textarea class="form-control" id="editarDescripcionServ" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarEstadoServ">Estado del Servicio</label>
+                            <select class="form-control" id="editarEstadoServ" required>
+                                <option value="True">Activo</option>
+                                <option value="False">Inactivo</option>
+                            </select>
+                        </div>
+                        <select class="form-control" id="editarProfesionales" name="profesionales[]" multiple>
+                            {% for profesional in profesionales %}
+                            <option value="{{ profesional.id_prof }}" {% if profesional.id_prof in profesionales_ids %}
+                                selected {% endif %}>
+                                {{ profesional.nombre_prof }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        });
+
+        $(document).ready(function () {
+            // Mostrar modal de eliminar
+            $('.eliminar-servicios').click(function (e) {
+                e.preventDefault();
+                const idServ = $(this).data('id');
+                const servicio = $(this).data('servicio');
+
+                $('#servNombre').text(servicio);
+                $('#modalEliminar').removeAttr('aria-hidden').removeAttr('inert').modal('show');
+
+                $('#confirmarEliminar').off('click').on('click', function () {
+                    $.ajax({
+                        url: "{% url 'eliminar_servicios' 0 %}".replace('0', idServ),
+                        method: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            idServ: idServ,
+                        },
+                        success: function (response) {
+                            if (response.status === 'success') {
+                                // Eliminar la fila de la tabla
+                                $('button[data-id="' + idServ + '"]').closest('tr').remove();
+                                $('#modalEliminar').modal('hide');
+                                alert('Servicio eliminado exitosamente.');
+                            } else {
+                                alert('Error al eliminar el servicio');
+                            }
+                        },
+                        error: function () {
+                            alert('Ocurrió un error al intentar eliminar el servicio');
+                        },
+                    });
+                });
+            });
+
+            $('.editar-servicios').click(function (e) {
+                e.preventDefault();
+
+                const idServ = $(this).data('id');
+                const nombreServicio = $(this).data('servicio');
+                const descripcionServicio = $(this).data('descripcion');
+                const estadoServicio = $(this).data('estado');
+                let profesionales = $(this).data('profesionales'); // Obtenemos el valor de data-profesionales
+
+                console.log("Profesionales antes del split:", profesionales);
+
+                // Verificar si profesionales es una cadena
+                if (typeof profesionales === 'string') {
+                    profesionales = profesionales.split(','); // Convertimos la cadena en un array
+                } else if (!profesionales) {
+                    profesionales = []; // Si está vacío, aseguramos que sea un array vacío
+                }
+
+                console.log("Profesionales después del split:", profesionales);
+
+                // Rellenar los campos del modal
+                $('#editarIdServ').val(idServ);
+                $('#editarNombreServ').val(nombreServicio);
+                $('#editarDescripcionServ').val(descripcionServicio);
+                $('#editarEstadoServ').val(estadoServicio);
+
+                const profesionalSelect = $('#editarProfesionales');
+                profesionalSelect.val(null); // Limpiar selecciones previas
+                profesionalSelect.val(profesionales); // Preseleccionar IDs
+
+                $('#modalEditar').modal('show');
+            });
+
+
+            $('#formEditarServicios').submit(function (e) {
+    e.preventDefault();
+    const seleccionados = $('#editarProfesionales').val();
+    const idServ = $('#editarIdServ').val();
+    const csrfToken = $('meta[name="csrf-token"]').attr('content'); // Token CSRF
+
+    $.ajax({
+        url: "{% url 'editar_servicios' 0 %}".replace('0', idServ),
+        method: 'POST',
+        data: {
+            nombre_servicio: $('#editarNombreServ').val(),
+            descripcion_servicio: $('#editarDescripcionServ').val(),
+            servicio_estado: $('#editarEstadoServ').val(),
+            profesionales: seleccionados,
+            csrfmiddlewaretoken: csrfToken
+        },
+        success: function (response) {
+            console.log("Respuesta del servidor:", response);  // Verifica lo que devuelve el servidor
+            if (response.status === 'success') {
+                const servicio = response.servicio; // Asegúrate de que la respuesta contenga 'servicio'
+                const updatedRow = `
+                    <td>${servicio.id_servicio}</td>
+                    <td>${servicio.nombre_servicio}</td>
+                    <td>${servicio.descripcion_servicio}</td>
+                    <td>${servicio.servicio_estado ? 'Activo' : 'Inactivo'}</td>
+                    <td>${servicio.profesionales.map(profesional => profesional.nombre_prof).join(', ')}</td>
+                    <td>
+                        <a href="#" class="btn btn-warning btn-sm editar-servicios"
+                            data-id="${servicio.id_servicio}"
+                            data-servicio="${servicio.nombre_servicio}"
+                            data-descripcion="${servicio.descripcion_servicio}"
+                            data-estado="${servicio.servicio_estado}"
+                            data-profesionales="${servicio.profesionales.map(profesional => profesional.id_prof).join(',')}">Editar</a>
+                        <button class="btn btn-danger btn-sm eliminar-servicios"
+                            data-id="${servicio.id_servicio}"
+                            data-servicio="${servicio.nombre_servicio}">Eliminar</button>
+                    </td>
+                `;
+
+                // Reemplazar la fila en la tabla
+                $(`button[data-id="${idServ}"]`).closest('tr').html(updatedRow);
+
+                // Cerrar el modal
+                $('#modalEditar').modal('hide');
+                alert('Servicio editado correctamente.');
+            } else {
+                alert('Error al editar el servicio.');
+            }
+        },
+        error: function (xhr, status, error) {
+            alert('Error en la solicitud AJAX.');
+        }
+    });
+});
+
+
+        });
+
+    </script>
+
+</body>
+
+</html>
+
+{% include "pie.html" %}

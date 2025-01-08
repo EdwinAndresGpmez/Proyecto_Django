@@ -1,0 +1,38 @@
+{% include "cabecera-administrador.html" %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Reportes</title>
+    <!-- Agregar enlace de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEJv3X4HgpDS5f2vwI5y4SYRFMmFCm1Jx0lNT6m4FQPBc3y7gkTnsZZfsdx6g" crossorigin="anonymous">
+    <!-- Agregar enlace de Font Awesome para íconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Selecciona un reporte para generar y descargar</h1>
+        
+        <div class="list-group">
+            <a href="{% url 'generate_report' report_type='citas_por_estado' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                Citas por Estado
+                <i class="fas fa-download"></i>
+            </a>
+            <a href="{% url 'generate_report' report_type='profesionales_mas_demandados' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                Profesionales Más Demandados
+                <i class="fas fa-download"></i>
+            </a>
+            <a href="{% url 'generate_report' report_type='pacientes_activos' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                Pacientes Activos
+                <i class="fas fa-download"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Agregar scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-7fKtpUEO1vYugD7ls4Dmd5MRAIiZis7OC4Ovw4lS9TxPTlfDRrQFxf0lK5iTQp1g2" crossorigin="anonymous"></script>
+</body>
+</html>
+{% include "pie.html" %}

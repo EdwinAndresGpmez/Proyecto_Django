@@ -1,0 +1,152 @@
+{% load static %}
+
+{% include "cabecera-invitado.html" %}
+
+<!-- BLOQUE DE CONTENIDO -->
+<!-- Titulo de la página actual-->
+<h2 class="text-center text-uppercase font-weight-bold text-primary py-4">
+    Bienvenido a Nuestro Centro Médico
+</h2>
+
+<!-- Línea superadora con un estilo moderno -->
+<hr class="mb-5 border-top border-primary" style="width: 70%; margin: auto;" />
+
+<!-- Contenedor de la información de las citas-->
+<div class="container-fluid">
+
+    <!-- Slider de imágenes con efecto de transición suave -->
+    <div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
+        <!-- Indicadores del carrusel -->
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
+    
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSokEtClu3DnvFReUtbZpCcUug4qT4AFYrizg&s" class="d-block mx-auto w-50" alt="Imagen de la clínica 1">
+            </div>
+            <div class="carousel-item">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAMAwxJgT4jY074vhn4Wh_ISjh8mdB2OEeWg&s" class="d-block mx-auto w-50" alt="Imagen de la clínica 2">
+            </div>
+            <div class="carousel-item">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAMAwxJgT4jY074vhn4Wh_ISjh8mdB2OEeWg&s" class="d-block mx-auto w-50" alt="Imagen de la clínica 3">
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- Sección destacada -->
+    <div class="text-center mt-5">
+        <h3 class="font-weight-bold">¿Qué hacemos en nuestra clínica?</h3>
+        <p class="lead text-muted">En nuestro centro médico, brindamos atención integral para toda la familia, desde bebés hasta adultos mayores. Con un enfoque en la prevención, diagnóstico y tratamiento de diversas condiciones médicas. Nuestros profesionales están comprometidos con la salud y el bienestar de nuestros pacientes.</p>
+    </div>
+
+    <!-- Sección de Servicios médicos -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10 col-lg-8">
+            <h4 class="text-center font-weight-bold">Servicios médicos especializados:</h4>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Atención médica general y especializada para todas las edades
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Exámenes de laboratorio y diagnóstico por imágenes
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Tratamientos quirúrgicos y procedimientos mínimamente invasivos
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="text-center my-5">
+        <h3 class="font-weight-bold">Conoce a nuestros profesionales</h3>
+        <p class="lead text-muted">Contamos con un equipo multidisciplinario de médicos y especialistas. Todos están comprometidos con ofrecer atención de calidad y un trato cercano.</p>
+
+        <div class="d-flex justify-content-center mt-4">
+            <img class="informacion-img img-fluid rounded-circle shadow-lg" src="https://clinicadeojosdeltolima.com/wp-content/uploads/2021/05/ENFERMERAS.jpg" alt="Equipo médico" style="max-width: 200px; border: 5px solid #f8f9fa;">
+        </div>
+    </div>
+
+    <!-- Sección de Servicios destacados con tarjetas interactivas -->
+    <div class="container py-5">
+        <h2 class="text-center pb-4 font-weight-bold">Nuestros Servicios</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <!-- Servicio 1 -->
+            <div class="col">
+                <div class="card shadow-lg border-light rounded-lg">
+                    <img src="https://magnetosur.com/wp-content/uploads/2021/11/Que-diferencias-existen-entre-la-medicina-general-y-la-medicina-interna.jpg" class="card-img-top rounded-lg" alt="Atención médica general">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary font-weight-bold">Atención Médica General</h5>
+                        <p class="card-text text-muted">Consultas médicas generales para toda la familia, con profesionales capacitados para tratar una variedad de condiciones y brindar el mejor cuidado posible.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Servicio 2 -->
+            <div class="col">
+                <div class="card shadow-lg border-light rounded-lg">
+                    <img src="https://ortocafe.com/images/4d44869ff2b1819ff3e72350a6a7f89d.jpg" class="card-img-top rounded-lg" alt="Exámenes de diagnóstico">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary font-weight-bold">Exámenes de Diagnóstico</h5>
+                        <p class="card-text text-muted">Ofrecemos una amplia gama de exámenes, desde análisis de laboratorio hasta estudios de imagenología, garantizando diagnósticos rápidos y precisos.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Servicio 3 -->
+            <div class="col">
+                <div class="card shadow-lg border-light rounded-lg">
+                    <img src="https://magnetosur.com/wp-content/uploads/2021/11/En-que-casos-se-debe-recurrir-a-la-medicina-general.jpg" class="card-img-top rounded-lg" alt="Especialidades Médicas">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary font-weight-bold">Especialidades Médicas</h5>
+                        <p class="card-text text-muted">Médicos especializados en diferentes áreas, como cardiología, dermatología y ginecología, brindando atención personalizada según la necesidad de cada paciente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón para más información -->
+    <div class="text-center mt-5">
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#modalInformacion">
+            Saber más sobre nuestros servicios
+        </button>
+    </div>
+</div>
+
+<!-- Modal de información adicional -->
+<div class="modal fade" id="modalInformacion" tabindex="-1" aria-labelledby="modalInformacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalInformacionLabel">Más sobre nuestros servicios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>En nuestro centro médico, ofrecemos un enfoque integral para cada paciente, con servicios personalizados según las necesidades de cada etapa de la vida. Nuestros especialistas están comprometidos con un diagnóstico preciso y un tratamiento eficaz para mejorar tu salud.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include "pie.html" %}
+
+<!-- Scripts para la animación y efectos -->
+<script>
+    // Animación de entrada de los textos
+    $(document).ready(function() {
+        $("h2, h5, p").each(function(index) {
+            $(this).delay(index * 500).fadeIn(1000);
+        });
+    });
+</script>
+
+<!-- Incluir Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>

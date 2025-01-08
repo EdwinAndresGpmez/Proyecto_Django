@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Notificaciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="background-color: #f4f4f4; padding: 20px;">
+    <div class="container">
+        <h1 class="text-center text-primary mb-4">Lista de Notificaciones</h1>
+
+        {% if notificaciones %}
+            <div class="list-group">
+                {% for notificacion in notificaciones %}
+                    <div class="list-group-item {% if notificacion.leida %}list-group-item-success{% else %}list-group-item-warning{% endif %} d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ notificacion.asunto }}</strong><br>
+                            <small class="text-muted">Creada el: {{ notificacion.fecha_creacion }}</small><br>
+                            <p class="mb-1">{{ notificacion.mensaje }}</p>
+                        </div>
+                        <span class="badge {% if notificacion.leida %}bg-success{% else %}bg-warning{% endif %} text-light">
+                            {% if notificacion.leida %}Leída{% else %}No leída{% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No tienes notificaciones.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Incluir pie de página -->
+    {% include "pie.html" %}
+
+    <!-- Cargar scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
