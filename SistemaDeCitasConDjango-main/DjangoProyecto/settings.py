@@ -91,6 +91,7 @@ AUTH_USER_MODEL = 'entrarSistema.CrearCuenta'
 
 WSGI_APPLICATION = 'DjangoProyecto.wsgi.application'
 
+LOGIN_URL = '/inicio/'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -100,8 +101,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "citas_bd",
-        "USER": "",
-        "PASSWORD": "",
+        "USER": "postgres",
+        "PASSWORD": "admin",
         "HOST": "127.0.0.1",
         "PORT": "5433",  # 5432
     }
@@ -185,3 +186,9 @@ EMAIL_PORT = 587  # Puerto para conexiones TLS (usualmente 587 o 465)
 EMAIL_USE_TLS = True  # Usa True para TLS, False si usas SSL
 EMAIL_HOST_USER = ''  # Tu dirección de correo
 EMAIL_HOST_PASSWORD = ''  # Tu contraseña
+
+
+
+TWILIO_ACCOUNT_SID = ''
+TWILIO_AUTH_TOKEN = ''
+TWILIO_PHONE_NUMBER = '+'  # Número del sandbox

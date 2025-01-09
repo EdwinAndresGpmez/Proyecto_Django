@@ -6,97 +6,105 @@ from django.http import HttpResponse
 from .forms import FormRegistrar, FormIniciar
 from .models import UsuarioRoles
 from administrador import views as modelsAdministrador
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+from django.contrib import messages
 
-
+User = get_user_model()
 # Create your views here.
-
-
 def iniciarSesion(request):
-
-    # Si ya tiene sesión, redirigir a la página de inicio
-    user = request.user
-    if user.is_authenticated:
-        return redirect('inicio')
-
-    if request.method == 'GET':
-        # Si la petición es GET, mostrar el formulario de inicio de sesión vacío
-        form = FormIniciar()
-
-        return render(request, 'entrar.html', {
-            'form': form,
-        })
-    else:
-        # Si la petición es POST, procesar el formulario
+    if request.method == "POST":
         form = FormIniciar(request.POST)
         if form.is_valid():
-            cedula = form.cleaned_data['cedula']  # Usamos cleaned_data, no request.POST directamente
-            password = form.cleaned_data['password']
+            cedula = form.cleaned_data.get("cedula")
+            password = form.cleaned_data.get("password")
 
-            # Autenticamos al usuario con la cédula y la contraseña
-            cuenta = authenticate(request, cedula=cedula, password=password)
+            # Autenticar usuario, usando 'username=cedula' porque en tu modelo:
+            # USERNAME_FIELD = 'cedula'
+            user = authenticate(request, username=cedula, password=password)
+            if user:
+                # 1. Asociar el paciente si existe
+                try:
+                    paciente = modelsAdministrador.Pacientes.objects.get(num_doc=cedula)
+                    if not user.paciente:
+                        user.paciente = paciente
+                        user.save()
+                        messages.success(request, "Se actualizó su cuenta con el paciente asociado.")
+                except modelsAdministrador.Pacientes.DoesNotExist:
+                    messages.warning(
+                        request,
+                        "No tiene un paciente asociado. Comuníquese con la Clínica para activarse como paciente y poder solicitar citas."
+                    )
 
-            if cuenta is not None:
-                login(request, cuenta)
+                # 2. Verificar si el usuario ya tiene rol
+                if not UsuarioRoles.objects.filter(id_usu=user).exists():
+                    # Crear un rol por defecto
+                    nuevo_rol = UsuarioRoles(
+                        id_usu=user,
+                        es_usuario=True,        # O los valores que consideres
+                        es_administrador=False,
+                        es_programador=False
+                    )
+                    nuevo_rol.save()
 
-                # Verificamos si el usuario tiene roles asignados
-                if not UsuarioRoles.objects.filter(id_usu=request.user).exists():
-                    # Si no tiene roles, creamos un nuevo rol para el usuario
-                    roles = UsuarioRoles(id_usu=request.user)
-                    roles.save()
+                    # 2.1. Guardar registro de auditoría
+                    modelsAdministrador.Auditoria.objects.create(
+                        descripcion_aut=(
+                            f"Se creó un 'rol' en la tabla *UsuarioRoles*, "
+                            f"con permisos de usuario ({nuevo_rol.es_usuario}), "
+                            f"ID rol: {nuevo_rol.pk}, creado por el usuario: {user.id}"
+                        )
+                    )
+                    messages.success(request, "Se creó un rol por defecto para su cuenta.")
 
-                    # Auditoría: Registramos la creación de un nuevo rol
-                    Audi = modelsAdministrador.Auditoria(
-                        descripcion_aut=f"Se creó un 'rol' en la tabla *UsuarioRoles*, obteniendo permisos de usuario ({roles.es_usuario}), con el id {roles.pk}, creado por el usuario: {request.user.id},")
-                    Audi.save()
-
-                # Redirigimos al inicio si la autenticación fue exitosa
-                return redirect('inicio')
+                # 3. Finalmente, iniciar sesión
+                login(request, user)
+                return redirect('inicio')  # Ajusta la URL del redirect
             else:
-                # Si no hay una cuenta con la cédula y contraseña proporcionados, mostramos un error
-                form.add_error(None, "Los datos suministrados no existen o son incorrectos.")
+                messages.error(request, "Credenciales inválidas.")
         else:
-            # Si el formulario no es válido, puedes manejar los errores si es necesario
-            print("Formulario no válido")
+            messages.error(request, "Formulario inválido. Verifique los datos ingresados.")
+    else:
+        form = FormIniciar()
 
-    # Retornamos el formulario de nuevo con los errores si los hubo
-    return render(request, 'entrar.html', {
-        'form': form,
-    })
+    return render(request, 'entrar.html', {'form': form})
 
 def Registrarse(request):
-
-    # Si ya tiene sesión no le abre esta página
-    user = request.user
-    if user.is_authenticated:
-        # HttpResponse('<script>alert("funcionó");</script>')
+    # 1. Verificar si el usuario ya inició sesión:
+    if request.user.is_authenticated:
         return redirect('inicio')
-
+    
     if request.method == 'GET':
+        # 2. Mostrar el formulario vacío
         form = FormRegistrar()
-        return render(request, 'registrar.html', {
-            'form': form
-        })
+        return render(request, 'registrar.html', {'form': form})
     else:
+        # 3. Procesar la información del formulario (POST)
         form = FormRegistrar(request.POST)
         if form.is_valid():
-
-            print(type(form))
             id_crear = form.save()
 
-            # Aqui ponemos el codigo del trigger -------
-
+            # 4. Guardar en Auditoría
             Audi = modelsAdministrador.Auditoria(
-                descripcion_aut=f"Se creó una 'cuenta' en la tabla *CrearCuenta*, con el nombre {id_crear.nombre}, usuario {id_crear.username} y la cédula {id_crear.cedula}, creado por el usuario: {request.user.id},")
+                descripcion_aut=(
+                    f"Se creó una 'cuenta' en la tabla *CrearCuenta*, "
+                    f"con el nombre {id_crear.nombre}, usuario {id_crear.username} "
+                    f"y la cédula {id_crear.cedula}, creado por el usuario: {request.user.id}."
+                )
+            )
             Audi.save()
 
-            # fin de trigger ------
+            # 5. Redireccionar al inicio de sesión
             return redirect('iniciarSesion')
         else:
-            print("")
+            # 6. El formulario es inválido: podrías mostrar mensajes de error
+            #    o simplemente recargar la página con los errores
+            print("Formulario de registro inválido.")
+            # Con Django Messages podrías hacer:
+            # messages.error(request, "Hay errores en el formulario. Por favor revisa los campos.")
+    
+    return render(request, 'registrar.html', {'form': form})
 
-    return render(request, 'registrar.html', {
-        'form': form,
-    })
 
 
 def cerrarSesion(request):
