@@ -152,7 +152,7 @@ class PacienteForm(forms.ModelForm):
             'pacientes_estado': 'Estado Activo',
         }
         widgets = {
-            'nacimiento_pac': forms.DateInput(attrs={'type': 'date'}),
+            'nacimiento_pac': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'Seleccione una fecha'}),
             'pacientes_estado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

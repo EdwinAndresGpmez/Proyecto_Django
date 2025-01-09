@@ -8,6 +8,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
     {% load static %}
 </head>
 <body>
@@ -53,7 +58,7 @@
                         <!-- Fecha de Nacimiento -->
                         <div class="form-group col-md-6">
                             <label for="nacimiento_pac">Fecha de Nacimiento</label>
-                            {{ form.nacimiento_pac|add_class:"form-control" }}
+                            <input type="date" name="nacimiento_pac" class="form-control" value="{{ request.POST.nacimiento_pac }}">
                         </div>
                     </div>
                     <div class="form-row">
@@ -185,8 +190,9 @@
                     </div>
                     <div class="form-group">
                         <label for="editarNacimientoPac">Fecha de Nacimiento</label>
-                        <input type="date" class="form-control" id="editarNacimientoPac" required>
-                    </div>                                                 
+                        <input type="date" class="form-control" id="editarNacimientoPac" name="fecha_nacimiento" required>
+                    </div>
+                                                                    
                     <div class="form-group">
                         <label for="editarGeneroPac">Género</label>
                         <select class="form-control" id="editarGeneroPac" required>
