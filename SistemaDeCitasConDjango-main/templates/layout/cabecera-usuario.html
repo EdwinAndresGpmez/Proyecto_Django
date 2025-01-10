@@ -1,112 +1,106 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Citas - TimeTrack</title>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Citas - TimeTrack</title>
 
-    <!-- Ubicacion del archivo FONTAWESOME para poder utilizar iconos -->
-    <link type='text/css' href='{% static "font_awesome/css_font_awesone/all.min.css" %}' rel="stylesheet">
-    <!-- Ubicacion del archivo CSS -->
-    <link type='text/css' href='{% static "css/estilo.css" %}' rel="stylesheet">
-    <!-- Ubicacion del archivo BOOTSTRAP -->
-    <link type='text/css' href='{% static "css/bootstrap/bootstrap.min.css" %}' rel="stylesheet">
-
+  <!-- FontAwesome -->
+  <link
+    rel="stylesheet"
+    href="{% static 'font_awesome/css_font_awesone/all.min.css' %}"
+  />
+  <!-- Bootstrap CSS -->
+  <link
+    rel="stylesheet"
+    href="{% static 'css/bootstrap/bootstrap.min.css' %}"
+  />
+  <!-- Tu hoja de estilos personalizada -->
+  <link rel="stylesheet" href="{% static 'css/estilo.css' %}" />
 </head>
 
-<style>
-    /* # SIGNIFICA ID */
-    /* ESTA LINEA DE CSS HACE QUE LA BARRA LATERAL "SIDEBAR" SE MANTENGA SIEMPRE EN LA PANTALLA SIN IMPORTAR LA ALTURA DEL CONTENIDO */
-    #sidebar-wrapper {
-        margin-left: -250px;
-        left: 250px;
-        width: 250px;
-        position: fixed;
-        height: 100%;
-        overflow-y: auto;
-        z-index: 1000;
-        transition: all 0.4s ease 0s;
-    }
-
-    /* EMPUJA EL CONTENIDO DEL MAIN, SI SE DESACTIVA SE SOBREPONEN TANTO EL SIDEBAR COMO EL MAIN */
-    #main {
-        margin-left: 250px;
-
-    }
-</style>
-
 <body>
+  <!-- Menú de navegación (Navbar) -->
+  <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
     <div class="container-fluid">
-        <!-- Panel lateral -->
+      <!-- Marca o logo (puedes personalizar el texto y el ícono) -->
+      <a class="navbar-brand d-flex align-items-center" href="/inicio/">
+        <i class="fa-solid fa-stethoscope fa-lg me-2"></i>
+        <span>TimeTrack</span>
+      </a>
 
-        <div class="row flex-nowrap ">
-            <!-- DIV que le da la forma al panel -->
-            <div class="d-flex flex-column p-3 text-white bg-dark" id="sidebar-wrapper">
-                <!-- Bloque de información, CONTIENE el título de la página -->
-                <a href="/inicio/"
-                    class="d-flex align-items-center mx-auto mb-3 mb-md-0 me-md-auto text-white text-decoration-none p-3">
-                    <i class="fa-solid fa-stethoscope fa-2xl" style="color: #ffffff;"></i>
-                </a>
+      <!-- Botón para colapsar/expandir el menú en móviles -->
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarMenu"
+        aria-controls="navbarMenu"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-                <!-- Línea separadora -->
-                <hr>
+      <!-- Sección que colapsa en pantallas pequeñas -->
+      <div class="collapse navbar-collapse" id="navbarMenu">
+        <ul class="navbar-nav ms-auto">
+          <!-- Opción Inicio -->
+          <li class="nav-item">
+            <a class="nav-link" href="/inicio/">
+              <i class="fa-solid fa-house me-1"></i> Inicio
+            </a>
+          </li>
+          <!-- Opción Citas -->
+          <li class="nav-item">
+            <a class="nav-link" href="/cita/">
+              <i class="fa-solid fa-calendar-days me-1"></i> Citas
+            </a>
+          </li>
+          <!-- Opción Historial -->
+          <li class="nav-item">
+            <a class="nav-link" href="/historial/">
+              <i class="fa-solid fa-clock me-1"></i> Historial Citas
+            </a>
+          </li>
+          <!-- Opción Configuración -->
+          <li class="nav-item">
+            <a class="nav-link" href="/configuracion/">
+              <i class="fa-solid fa-gears me-1"></i> Configuración
+            </a>
+          </li>
+          <!-- Opción Cerrar Sesión -->
+          <li class="nav-item">
+            <a class="nav-link" href="/cerrar/">
+              <i class="fa-solid fa-right-from-bracket me-1"></i> Cerrar Sesión
+            </a>
+          </li>
+        </ul>
 
-                <!-- LISTA de las página que el usuario puede visitar -->
-                <ul class="nav nav-pills flex-column mb-auto">
-                    <!-- Contiene el INICIO de la página, el menu principal se pudiera decir -->
-                    <li class="nav-item">
-                        <!-- IMPORTANTE, para que funcione el ACTIVE en los nav-item, es necesario colocar en el id del enlace (a) un nombre (preferiblemente del nombre de la pagina) atras de un tab, ejp: tab-menu_principal, con eso el javascript funcionará, para agregar más páginas revisar JAVASCRIPT -->
-                        <a href="/inicio/" class="tab-li nav-link text-white" id="tab-inicio">
-                            <i class="fa-solid fa-house bi me-2"></i>
-                            <span class="fs-5">Inicio</span>
-                        </a>
-                    </li>
-                    <!-- Contiene la página CITAS -->
-                    <li class="nav-item pb-2">
-                        <a href="/cita/" class="tab-li nav-link text-white" id="tab-citas">
-                            <i class="fa-solid fa-calendar-days bi me-2"></i>
-                            <span class="fs-5">Citas</span>
-                        </a>
-                    </li>
-                    <!-- Contiene la página HISTORIAL DE CITAS -->
-                    <li class="nav-item pb-2">
-                        <a href="/historial/" class="tab-li nav-link text-white" id="tab-citas">
-                            <i class="fa-solid fa-clock fa-sm" style="color: #ffffff;"></i>
-                            <span class="fs-5">Historial Citas</span>
-                        </a>
-                    </li>
-                    <!-- Contiene la página de CONFIGURACION -->
-                    <li class="nav-item pb-2">
-                        <a href="/configuracion/" class="tab-li nav-link text-white" id="tab-configuracion">
-                            <i class="fa-solid fa-gears bi me-2"></i>
-                            <span class="fs-5">Configuración</span>
-                        </a>
-                    </li>
-                    <!-- Contiene la página de CERRAR SESION -->
-                    <li class="nav-item pb-2">
-                        <a href="/cerrar/" class="tab-li nav-link text-white" id="cerrar_sesion">
-                            <i class="fa-solid fa-right-from-bracket bi me-2"></i>
-                            <span class="fs-5">Cerrar Sesión</span>
-                        </a>
-                    </li>
-                </ul>
+        <!-- Usuario (opcional): si quieres mostrar el nombre del usuario -->
+        <ul class="navbar-nav ms-3">
+          <li class="nav-item d-flex align-items-center text-white">
+            <i class="fa-regular fa-circle-user fa-lg me-2"></i>
+            <strong>{{ user.username }}</strong>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-                <!-- Línea separadora -->
-                <hr>
+  <!-- Contenido Principal -->
+  <div class="container my-4" id="main">
+    <main>
+      {% block content %}
+      <!-- Aquí irá el contenido específico de cada vista -->
+      {% endblock %}
+    </main>
+  </div>
 
-                <!-- Contiene la información del usuario, mostrando el nombre de usuario y la foto de "perfil" que tienen se pudiera mantener o eliminar -->
-                <a href="#" class="d-flex align-items-center text-white text-decoration-none" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    <i class="fa-regular fa-circle-user fs-2 rounded-circle me-2"></i>
-                    <strong>{{ user.username }}</strong>
-                </a>
-            </div>
-
-
-            <div class="col-sm p-4 min-vh-100" id="main">
-                <main>
-                    <!-- BLOQUE DE CONTENIDO -->
+  <!-- Bootstrap JS (necesario para el navbar colapsable) -->
+  <!-- Asegúrate de tener el bundle que incluye Popper -->
+  <script src="{% static 'javascript/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

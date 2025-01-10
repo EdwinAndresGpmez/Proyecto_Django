@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from django.shortcuts import render, redirect
 from administrador import models as modelsAdministrador
 from administrador import views as viewsAdministrador
@@ -18,6 +19,7 @@ from django.conf import settings
 from programador import models as modelsProgramador
 
 from django.utils import timezone
+
 
 
 # Create your views here.
@@ -140,20 +142,20 @@ def cancelarCita(request, id_cit):
         messages.error(request, "No es posible cancelar citas con fechas anteriores a hoy.")
         return redirect('inicio')
 
-    # Verificar si faltan menos de 8 horas para la cita
-    # Convierte 'idCita.dia_cit' a un objeto datetime para combinarlo con la hora actual
-    if hasattr(idCita, 'hora_cit'):  # Verifica si existe el campo 'hora_cit'
-        cita_datetime = datetime.combine(idCita.dia_cit, idCita.id_hora)  # Combinar fecha y hora de la cita
+    # Verificar si la cita tiene hora asociada
+    if idCita.id_hora:
+        # Combinar el día de la cita con la hora de inicio
+        cita_datetime = datetime.combine(idCita.dia_cit, idCita.id_hora.inicio_hora)
     else:
-        # Si 'hora_cit' no existe, usamos solo 'dia_cit' y lo convertimos a datetime
-        cita_datetime = datetime.combine(idCita.dia_cit, datetime.min.time())  # Asignamos medianoche para la hora
+        # Si no tiene una hora asociada, asumir la medianoche (00:00)
+        cita_datetime = datetime.combine(idCita.dia_cit, datetime.min.time())
 
     # Asegurarse de que cita_datetime tenga la misma zona horaria que now_local
-    cita_datetime = timezone.make_aware(cita_datetime, timezone.get_current_timezone())  # Convertir a aware
+    cita_datetime = timezone.make_aware(cita_datetime, timezone.get_current_timezone())
 
     print(f"Fecha y hora de la cita: {cita_datetime}")
 
-    # Ahora podemos comparar correctamente las fechas
+    # Verificar si faltan menos de 8 horas para la cita
     if cita_datetime - now_local < timedelta(hours=8):
         messages.error(request, "Solo puedes cancelar citas con al menos 8 horas de anticipación.")
         return redirect('inicio')
@@ -324,6 +326,7 @@ def cita(request):
             'mensaje': notificacion.mensaje,
             'asunto': notificacion.asunto,
         })
+        
 
         send_mail(
             notificacion.asunto,
@@ -341,28 +344,33 @@ def cita(request):
     
     
 def get_lugares(request):
-    id_servicio = request.GET.get('id_servicio')
-    print(f"ID del servicio recibido: {id_servicio}")
+    # Obtenemos el ID del profesional
+    id_prof = request.GET.get('id_prof')
+    print(f"ID del profesional recibido: {id_prof}")
 
-    if id_servicio:
+    if id_prof:
         try:
-            # Filtrar lugares a través de los profesionales asociados al servicio
-            lugares = modelsAdministrador.Lugares.objects.filter(
-                profesionales__servicios__id_servicio=id_servicio,
-                lugares_estado=True
-            ).distinct()
+            # Buscar el profesional
+            profesional = viewsAdministrador.Profesional.objects.get(id_prof=id_prof)
+
+            # Obtener los lugares asociados a ese profesional 
+            # donde lugares_estado sea True
+            lugares = profesional.lugares.filter(lugares_estado=True).distinct()
 
             print(f"Lugares encontrados: {[lugar.nombre_lugar for lugar in lugares]}")
-        except Exception as e:
-            print(f"Error al realizar la consulta: {e}")
+
+        except viewsAdministrador.Profesional.DoesNotExist:
+            print("No existe el profesional con ese ID.")
             lugares = []
-
-        # Construir la respuesta en formato JSON
-        data = [{'id_lugar': lugar.id_lugar, 'nombre_lugar': lugar.nombre_lugar} for lugar in lugares]
     else:
-        print("No se proporcionó un ID de servicio")
-        data = []
+        print("No se proporcionó un ID de profesional.")
+        lugares = []
 
+    # Construir la respuesta en formato JSON
+    data = [
+        {'id_lugar': lugar.id_lugar, 'nombre_lugar': lugar.nombre_lugar}
+        for lugar in lugares
+    ]
     return JsonResponse(data, safe=False)
 
 def get_profesionales(request):

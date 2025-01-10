@@ -186,6 +186,7 @@
 
 <!-- Scripts dinámicos -->
 <script>
+    // 1. Al cambiar el SERVICIO, cargamos la lista de profesionales (igual que antes)
     document.getElementById('servicio').addEventListener('change', function () {
         const servicioId = this.value;
         const profesionalSelect = document.getElementById('profesional');
@@ -202,8 +203,22 @@
                     });
                 });
 
-            // Cargar lugares
-            fetch(`{% url 'get_lugares' %}?id_servicio=${servicioId}`)
+            // Limpia el select de lugares, ya que ahora esperaremos
+            // la selección de profesional.
+            lugaresSelect.innerHTML = '<option value="">Selecciona un profesional primero</option>';
+        } else {
+            profesionalSelect.innerHTML = '<option value="">Selecciona un servicio primero</option>';
+            lugaresSelect.innerHTML = '<option value="">Selecciona un servicio primero</option>';
+        }
+    });
+
+    // 2. Al cambiar el PROFESIONAL, cargamos la lista de LUGARES
+    document.getElementById('profesional').addEventListener('change', function () {
+        const profesionalId = this.value;
+        const lugaresSelect = document.getElementById('lugares');
+
+        if (profesionalId) {
+            fetch(`{% url 'get_lugares' %}?id_prof=${profesionalId}`)
                 .then(response => response.json())
                 .then(data => {
                     lugaresSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
@@ -212,11 +227,11 @@
                     });
                 });
         } else {
-            profesionalSelect.innerHTML = '<option value="">Selecciona un servicio primero</option>';
-            lugaresSelect.innerHTML = '<option value="">Selecciona un servicio primero</option>';
+            lugaresSelect.innerHTML = '<option value="">Selecciona un profesional primero</option>';
         }
     });
 
+    // 3. Al cambiar la FECHA, cargamos la lista de HORAS (igual que antes)
     document.getElementById('dia').addEventListener('change', function () {
         const diaCit = this.value;
         const profesionalId = document.getElementById('profesional').value;
@@ -236,4 +251,5 @@
         }
     });
 </script>
+
 {% include "pie.html" %}
