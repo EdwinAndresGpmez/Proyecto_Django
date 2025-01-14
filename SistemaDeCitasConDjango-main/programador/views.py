@@ -117,7 +117,9 @@ def crear_notificacion(request):
         form = NotificacionForm(request.POST)
         if form.is_valid():
             # Guardar la notificación en la base de datos
-            notificacion = form.save()
+            notificacion = form.save(commit=False)
+            notificacion.usuario = request.user  # Asigna automáticamente el usuario autenticado
+            notificacion.save()
 
             # Renderizar el contenido del correo usando la plantilla 'email_notificacion.html'
             message = render_to_string('email_notificacion.html', {

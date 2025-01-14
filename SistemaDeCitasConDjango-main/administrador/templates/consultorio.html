@@ -33,9 +33,9 @@ así que transforme el archivo a PHP -->
                         <option selected hidden value="">Elige la cita</option>
                         {% if listaCitas %}
                         {% for cita in listaCitas %}
-                        <option value="{{ cita.id_cit }}">Cita de {{ cita.id_usu.nombre }}
+                        <option value="{{ cita.id_cit }}">Cita de {{ cita.id_pac.nombre_pac}}
                             {% if cita.id_pac %}
-                            con el paciente {{ cita.id_pac.nombre_pac }} para el día {{cita.dia_cit }}.
+                            con {{ cita.id_prof.nombre_prof }} para el día {{cita.dia_cit }} a la/s {{cita.id_hora.inicio_hora}}.
                             {% else %}
                             , por primera vez para el día {{cita.dia_cit }}.
                             {% endif %}

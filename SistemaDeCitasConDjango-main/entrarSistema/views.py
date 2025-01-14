@@ -31,9 +31,9 @@ def iniciarSesion(request):
                         user.save()
                         messages.success(request, "Se actualizó su cuenta con el paciente asociado.")
                 except modelsAdministrador.Pacientes.DoesNotExist:
-                    messages.warning(
+                    messages.info(
                         request,
-                        "No tiene un paciente asociado. Comuníquese con la Clínica para activarse como paciente y poder solicitar citas."
+                         "Te has registrado como usuario, pero aún no eres paciente. Si deseas solicitar citas médicas, comunícate con la Clínica para registrarte como paciente."
                     )
 
                 # 2. Verificar si el usuario ya tiene rol
@@ -95,7 +95,7 @@ def Registrarse(request):
             Audi.save()
 
             # 5. Redireccionar al inicio de sesión
-            return redirect('iniciarSesion')
+            return redirect('inicio')
         else:
             # 6. El formulario es inválido: podrías mostrar mensajes de error
             #    o simplemente recargar la página con los errores

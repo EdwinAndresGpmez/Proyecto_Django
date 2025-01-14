@@ -56,8 +56,8 @@ class FormCitas(forms.ModelForm):
         elif Citas.objects.filter(
             dia_cit=self.cleaned_data.get('dia_cit'),
             id_usu=self.cleaned_data.get('id_usu')
-        ).exists():
-            self.add_error('id_hora', "Ya tiene una cita programada para este día.")
+        ).exclude(estado_cita="Cancelada").exists():
+            self.add_error(None, "Ya tiene una cita en proceso para este día.")
 
         # Retornar los datos validados
         return cleaned_data

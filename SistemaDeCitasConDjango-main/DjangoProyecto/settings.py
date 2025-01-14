@@ -165,7 +165,6 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-print(f"Valor de EMAIL_HOST_PASSWORD: {repr(EMAIL_HOST_PASSWORD)}")
 
 # ===========================
 #  Configuración Twilio

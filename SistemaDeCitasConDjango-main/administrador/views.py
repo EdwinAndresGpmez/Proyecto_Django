@@ -492,6 +492,7 @@ def citas_admin(request):
         lista_citas_rechazadas = modelsUsuario.Citas.objects.filter(estado_cita="Rechazada", citas_estado=False)
         lista_citas_pendientes = modelsUsuario.Citas.objects.filter(estado_cita="Sin confirmar", citas_estado=True)
         lista_citas_canceladas = modelsUsuario.Citas.objects.filter(estado_cita="Cancelada", citas_estado=False)
+        lista_citas_realizadas = modelsUsuario.Citas.objects.filter(estado_cita="Realizada", citas_estado=True)
 
         if "btnRevisarAceptar" in request.POST:
             idCita = modelsUsuario.Citas.objects.get(id_cit=request.POST["id_cit"])
@@ -530,6 +531,7 @@ def citas_admin(request):
 
         elif "btnRechazarEliminar" in request.POST:
             idCita = modelsUsuario.Citas.objects.get(id_cit=request.POST["id_cit"])
+            idCita.estado_cita = "Eliminada"
             idCita.citas_estado = False
             idCita.save()
             Auditoria.objects.create(
@@ -552,6 +554,7 @@ def citas_admin(request):
                 "listaCitasAceptadas": lista_citas_aceptadas,
                 "listaCitasRechazadas": lista_citas_rechazadas,
                 "listaCitasPendientes": lista_citas_pendientes,
+                "listaCitasRealizadas": lista_citas_realizadas,
                 "listaCitasCancelada": lista_citas_canceladas,
             },
         )

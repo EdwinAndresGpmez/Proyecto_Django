@@ -158,28 +158,19 @@ class FormRegistrar(forms.Form, UserCreationForm):
 
     def clean(self):
         cleaned_data = super(FormRegistrar, self).clean()
-        cedula = cleaned_data.get('cedula')
 
-        # Verificar si existe un paciente con esta cédula
-        try:
-            Pacientes.objects.get(num_doc=cedula)
-        except Pacientes.DoesNotExist:
-            raise ValidationError(
-                {"cedula": "No existe un paciente asociado con esta cédula. Comuníquese con la Clínica para registrarlo."}
-            )
-
-        # Validación de contraseñas
         if not cleaned_data.get('password1') or not cleaned_data.get('password2'):
             raise ValidationError("Debe ingresar y confirmar la contraseña.")
         if cleaned_data.get('password1') != cleaned_data.get('password2'):
             self.add_error('password2', "Las contraseñas no coinciden.")
-
-        # Validación de unicidad
+    
+        # Validaciones de unicidad
+        # (Suponiendo que tu modelo User tiene campos 'correo' y 'cedula')
         if User.objects.filter(username=cleaned_data.get('username')).exists():
             self.add_error('username', "El usuario ya ha sido elegido, intente otro.")
         if User.objects.filter(correo=cleaned_data.get('correo')).exists():
             self.add_error('correo', "El correo ya ha sido elegido, intente otro.")
-        if User.objects.filter(cedula=cedula).exists():
+        if User.objects.filter(cedula=cleaned_data.get('cedula')).exists():
             self.add_error('cedula', "La cédula ya ha sido elegida, intente otra.")
-
+    
         return cleaned_data

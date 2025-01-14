@@ -41,7 +41,6 @@ def inicio(request):
 
             formCitas = FormCitas()
 
-            # lista_horas = Horas.objects.all()
             lista_horas = modelsAdministrador.Horas.objects.filter(
                 horas_estado=True)
             lista_lugares = modelsAdministrador.Lugares.objects.filter(
@@ -195,7 +194,6 @@ def cita(request):
             estado_cita__in=["Aceptada", "Sin confirmar", "Realizada"],
             citas_estado=True
         )
-     
 
         horas_ocupadas = citas_dia.values_list("id_hora_id", flat=True)
         lista_horas = modelsAdministrador.Horas.objects.filter(horas_estado=True).exclude(id_hora__in=horas_ocupadas)
@@ -223,22 +221,56 @@ def cita(request):
         
         # Validar formulario
         if not formCitas.is_valid():
-            return render(request, 'citas.html', {'form': formCitas})
+            # Reconsultar las listas para pasarlas al template
+            citas_dia = Citas.objects.filter(
+                dia_cit=formCitas.cleaned_data.get('dia_cit'),
+                estado_cita__in=["Aceptada", "Sin confirmar", "Realizada"],
+                citas_estado=True
+            )
 
+            horas_ocupadas = citas_dia.values_list("id_hora_id", flat=True)
+            lista_horas = modelsAdministrador.Horas.objects.filter(horas_estado=True).exclude(id_hora__in=horas_ocupadas)
+            lista_lugares = modelsAdministrador.Lugares.objects.filter(lugares_estado=True)
+            lista_pacientes = modelsAdministrador.Pacientes.objects.filter(
+                pacientes_estado=True, tipo_usuario='Particular'
+            )
+            lista_profesionales = modelsAdministrador.Profesional.objects.filter(estado_prof=True)
+            lista_servicios = modelsAdministrador.Servicio.objects.filter(servicio_estado=True)
+
+            return render(request, 'citas.html', {
+                'form': formCitas,
+                'listaHoras': lista_horas,
+                'listaLugares': lista_lugares,
+                'listaPacientes': lista_pacientes,
+                'listaServicios': lista_servicios,
+                'listaProfesionales': lista_profesionales,
+                'fecha': formCitas.cleaned_data.get('dia_cit')
+            })
         
-        # Obtener el id_servicio, id_prof, y paciente_id desde el formulario
+        # Obtener los datos del formulario
         id_servicio = formCitas.cleaned_data.get('id_servicio')
         id_prof = formCitas.cleaned_data.get('id_prof')
         paciente_id = formCitas.cleaned_data.get('id_pac')
         id_lugar = formCitas.cleaned_data.get('id_lugar') 
         id_usuario = formCitas.cleaned_data.get('id_usu') 
+
         print(f"request.user: {request.user}")
         print(f"request.user.id: {request.user.paciente_id}")
 
         # Validación de servicio y profesional
         if not id_servicio or not id_prof:
             error = "Servicio o profesional no seleccionados"
-            return render(request, 'citas.html', {'error': error, 'form': formCitas})
+            messages.error(request, error)
+            return render(request, 'citas.html', {
+                'form': formCitas,
+                'listaHoras': lista_horas,
+                'listaLugares': lista_lugares,
+                'listaPacientes': lista_pacientes,
+                'listaServicios': lista_servicios,
+                'listaProfesionales': lista_profesionales,
+                'fecha': fecha,
+                'error': error
+            })
 
         try:
             if isinstance(id_usuario, int):
@@ -268,7 +300,6 @@ def cita(request):
             else: 
                  instance_paciente = paciente_id
 
-
             print(f"Usuario: {instance_User}")
             print(f"Hora: {instance_Hora}")
             print(f"Servicio: {instance_Servicio}")
@@ -277,71 +308,79 @@ def cita(request):
 
         except ObjectDoesNotExist as e:
             error = f"Datos inválidos: {str(e)}"
-            return render(request, 'citas.html', {'error': error, 'form': formCitas})
+            messages.error(request, error)
+            return render(request, 'citas.html', {
+                'form': formCitas,
+                'listaHoras': lista_horas,
+                'listaLugares': lista_lugares,
+                'listaPacientes': lista_pacientes,
+                'listaServicios': lista_servicios,
+                'listaProfesionales': lista_profesionales,
+                'fecha': fecha,
+                'error': error
+            })
 
-        # Crear cita sin paciente (si no se selecciona uno)
-        if paciente_id:  # Solo se asigna paciente si se ha seleccionado
-            try:
-                id_cita = Citas(
-                    id_usu=instance_User,
-                    id_lugar=instance_Lugar,
-                    id_hora=instance_Hora,
-                    id_pac=instance_paciente,
-                    id_servicio=instance_Servicio,
-                    id_prof=instance_Profesional,
-                    dia_cit=formCitas.cleaned_data['dia_cit'],
-                    nota_cit=formCitas.cleaned_data['nota_cit'],
-                    estado_cita='Sin confirmar'
-                )
-            except modelsAdministrador.Pacientes.DoesNotExist:
-                error = "Paciente inválido"
-                return render(request, 'citas.html', {'error': error, 'form': formCitas})
-        else:
-            id_cita = Citas(
-                id_usu=instance_User,
-                id_lugar=instance_Lugar,
-                id_hora=instance_Hora,
-                id_pac=instance_paciente,
-                id_servicio=instance_Servicio,
-                id_prof=instance_Profesional,
-                dia_cit=formCitas.cleaned_data['dia_cit'],
-                nota_cit=formCitas.cleaned_data['nota_cit'],
-                estado_cita='Sin confirmar'
-            )
+        # Crear cita
+        id_cita = Citas(
+            id_usu=instance_User,
+            id_lugar=instance_Lugar,
+            id_hora=instance_Hora,
+            id_pac=instance_paciente,
+            id_servicio=instance_Servicio,
+            id_prof=instance_Profesional,
+            dia_cit=formCitas.cleaned_data['dia_cit'],
+            nota_cit=formCitas.cleaned_data['nota_cit'],
+            estado_cita='Sin confirmar'
+        )
 
         # Guardar la cita
         id_cita.save()
-
-         # Crear y enviar la notificación aquí
-        notificacion = modelsProgramador.Notificacion(
-            usuario=instance_User,
-            mensaje=f"Se ha solicitado una cita con {instance_Profesional.nombre_prof} para el {formCitas.cleaned_data['dia_cit']} a las {formCitas.cleaned_data['id_hora']}.",
-            asunto="Nueva cita solicitada"
-        )
-        notificacion.save()
-
-        # Enviar el correo de notificación
-        message = render_to_string('email_notificacion.html', {
-            'usuario': notificacion.usuario,
-            'mensaje': notificacion.mensaje,
-            'asunto': notificacion.asunto,
-        })
-        
-
-        send_mail(
-            notificacion.asunto,
-            message,
-            settings.EMAIL_HOST_USER,
-            [notificacion.usuario.correo],
-            fail_silently=False,
-            html_message=message,
-        )
-
         # Mostrar un mensaje de éxito
-        messages.success(request, "¡Cita solicitada exitosamente! Una notificación ha sido enviada.")
+        messages.success(request, "¡Cita solicitada exitosamente!")
 
+        # Obtener el objeto Horas y formatear la hora de inicio (por ejemplo, 'HH:MM')
+        horario = formCitas.cleaned_data['id_hora']
+        inicio_hora = horario.inicio_hora.strftime('%H:%M')
+
+        # Crear y guardar la notificación (puedes almacenar el mensaje completo o dejarlo para la plantilla)
+        try:
+            # Crear la notificación en la base de datos
+            notificacion = modelsProgramador.Notificacion(
+                usuario=instance_User,
+                mensaje='',  # El mensaje se compone en el email a través de la plantilla
+                asunto="Nueva cita solicitada"
+            )
+            notificacion.save()
+            
+            # Renderizar la plantilla con las variables dinámicas
+            message = render_to_string('email_notificacion.html', {
+                'usuario': notificacion.usuario,
+                'profesional': instance_Profesional.nombre_prof,
+                'dia_cit': formCitas.cleaned_data['dia_cit'],
+                'inicio_hora': inicio_hora,
+                'asunto': notificacion.asunto,
+            })
+            
+            # Enviar el correo
+            send_mail(
+                notificacion.asunto,
+                message,  # Contenido de texto (aunque se usa HTML)
+                settings.EMAIL_HOST_USER,
+                [notificacion.usuario.correo],
+                fail_silently=False,
+                html_message=message,  # Se envía como HTML
+            )
+        
+        except Exception as e:
+            # Aquí se captura cualquier error y se ignora para que no afecte al usuario.
+            # Opcional: registra el error en el log para poder revisarlo después.
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error("Error enviando la notificación por correo: %s", e)
+            # O simplemente "pasar" sin afectar la experiencia del usuario:
+            pass
+        
         return redirect('cita')
-    
     
 def get_lugares(request):
     # Obtenemos el ID del profesional
@@ -387,27 +426,37 @@ def get_profesionales(request):
     
     return JsonResponse(data, safe=False)
 
+
 def get_horas(request):
     id_prof = request.GET.get('id_prof')  # ID del profesional
     dia_cit = request.GET.get('dia_cit')  # Fecha seleccionada
 
-    print(f"ID del profesional recibido: {id_prof}")  # Debug: Verificar ID del profesional
-    print(f"Fecha seleccionada recibida: {dia_cit}")   # Debug: Verificar fecha seleccionada
+    print(f"ID del profesional recibido: {id_prof}")  
+    print(f"Fecha seleccionada recibida: {dia_cit}")
 
     try:
-        # Validar si el profesional está activo
         profesional = modelsAdministrador.Profesional.objects.get(id_prof=id_prof, estado_prof=True)
-        print(f"Profesional encontrado: {profesional}")  # Debug: Profesional encontrado
+        print(f"Profesional encontrado: {profesional}")
 
-        # Convertir la fecha de string a objeto de fecha
+        # Convertir la fecha string a objeto date
         fecha = parse_date(dia_cit)
-        print(f"Fecha convertida: {fecha}")  # Debug: Fecha convertida
+        print(f"Fecha convertida: {fecha}")
 
         if not fecha:
-            print("Error: Fecha inválida")  # Debug: Fecha inválida
+            print("Error: Fecha inválida")
             return JsonResponse({'error': 'Fecha inválida'}, status=400)
 
-        # Filtrar las horas ocupadas por citas existentes con las condiciones dadas
+        # Obtener la fecha/hora actual con zona horaria local
+        now_local = timezone.localtime(timezone.now())
+        hoy = now_local.date()
+        hora_actual = now_local.time()
+
+        # 1. Si la fecha está en el pasado, no mostramos nada
+        if fecha < hoy:
+            print("La fecha seleccionada está en el pasado. No se devuelven horas.")
+            return JsonResponse([], safe=False)
+
+        # Filtrar las horas ocupadas
         horas_ocupadas = Citas.objects.filter(
             id_prof=profesional,
             dia_cit=fecha,
@@ -415,18 +464,21 @@ def get_horas(request):
             estado_cita__in=["Aceptada", "Sin confirmar", "Realizada"]
         ).values_list('id_hora', flat=True)
 
-        print(f"Horas ocupadas: {horas_ocupadas}")  # Debug: Lista de horas ocupadas
+        print(f"Horas ocupadas: {list(horas_ocupadas)}")
 
-        # Filtrar las horas disponibles
+        # Construir Query base de horas disponibles
         horas_disponibles = modelsAdministrador.Horas.objects.filter(
             id_prof=profesional,
-            horas_estado=True,          # Solo horas activas
-            fecha_habilitada=fecha      # Solo para la fecha seleccionada
+            horas_estado=True,
+            fecha_habilitada=fecha
         ).exclude(id_hora__in=horas_ocupadas)
 
-        print(f"Horas disponibles: {horas_disponibles}")  # Debug: Lista de horas disponibles
+        # 2. Si es el día de hoy, filtrar horas que estén en o después de la hora actual
+        if fecha == hoy:
+            # Por ejemplo, filtras por la hora de inicio >= ahora
+            horas_disponibles = horas_disponibles.filter(inicio_hora__gte=hora_actual)
 
-        # Construir la respuesta con el rango de horas
+        # Construir la respuesta
         data = [
             {
                 'id_hora': h.id_hora,
@@ -434,13 +486,13 @@ def get_horas(request):
             }
             for h in horas_disponibles
         ]
-        print(f"Respuesta construida: {data}")  # Debug: Respuesta final
+        print(f"Respuesta construida: {data}")
     except modelsAdministrador.Profesional.DoesNotExist:
-        # Si no existe el profesional o no está activo, devolver lista vacía
-        print("Profesional no encontrado o no activo")  # Debug: Profesional no encontrado o inactivo
+        print("Profesional no encontrado o no activo")
         data = []
 
     return JsonResponse(data, safe=False)
+
 
 
 def historial(request):
